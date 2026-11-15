@@ -1,0 +1,106 @@
+{
+ "voice": "bm_george",
+ "lang": "en-gb",
+ "lines": [
+  {
+   "scene": "overview",
+   "title": "Horizontal three-phase separator",
+   "text": "This is a horizontal three-phase separator."
+  },
+  {
+   "scene": "overview",
+   "title": "Horizontal three-phase separator",
+   "text": "It takes the mixed stream from the wells and splits it into gas, oil or condensate, and water."
+  },
+  {
+   "scene": "overview",
+   "title": "Horizontal three-phase separator",
+   "text": "On a gas field, the liquid is mostly condensate and produced water."
+  },
+  {
+   "scene": "inlet",
+   "title": "1  Inlet diverter",
+   "text": "The well stream enters here and hits an inlet diverter."
+  },
+  {
+   "scene": "inlet",
+   "title": "1  Inlet diverter",
+   "text": "The sudden change in direction knocks most of the liquid out of the gas straight away."
+  },
+  {
+   "scene": "inlet",
+   "title": "1  Inlet diverter",
+   "text": "This is called bulk separation."
+  },
+  {
+   "scene": "settling",
+   "title": "2  Gravity settling",
+   "text": "Gas flows along the top of the vessel."
+  },
+  {
+   "scene": "settling",
+   "title": "2  Gravity settling",
+   "text": "It slows down in this large space, so heavier liquid droplets fall out under gravity."
+  },
+  {
+   "scene": "mist",
+   "title": "3  Mist extractor",
+   "text": "Before the gas leaves, it passes through a mist extractor, usually a wire mesh pad or a vane pack."
+  },
+  {
+   "scene": "mist",
+   "title": "3  Mist extractor",
+   "text": "It catches fine droplets that are too small to settle on their own."
+  },
+  {
+   "scene": "retention",
+   "title": "4  Liquid retention",
+   "text": "Below, the liquid needs time."
+  },
+  {
+   "scene": "retention",
+   "title": "4  Liquid retention",
+   "text": "Water is heavier, so it sinks to the bottom, while oil rises to the top."
+  },
+  {
+   "scene": "retention",
+   "title": "4  Liquid retention",
+   "text": "That is why separators are sized for retention time: usually a few minutes, and longer for heavy or emulsified liquids."
+  },
+  {
+   "scene": "weir",
+   "title": "5  The weir",
+   "text": "The oil layer floats on the water and spills over a weir into its own compartment."
+  },
+  {
+   "scene": "weir",
+   "title": "5  The weir",
+   "text": "Water stays behind the weir and is drawn off from the bottom."
+  },
+  {
+   "scene": "control",
+   "title": "6  Control and protection",
+   "text": "Three control loops keep the vessel stable."
+  },
+  {
+   "scene": "control",
+   "title": "6  Control and protection",
+   "text": "A pressure controller on the gas outlet, a level controller on the oil compartment, and an interface level controller holding the oil water boundary."
+  },
+  {
+   "scene": "control",
+   "title": "6  Control and protection",
+   "text": "A pressure safety valve protects the vessel if pressure rises too far."
+  },
+  {
+   "scene": "takeaway",
+   "title": "Takeaway",
+   "text": "On a P and I D, find the inlet, the three outlets, the weir, and the three control loops."
+  },
+  {
+   "scene": "takeaway",
+   "title": "Takeaway",
+   "text": "Trace those, and you can read almost any separator."
+  }
+ ]
+}

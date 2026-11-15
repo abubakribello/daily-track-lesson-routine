@@ -1,0 +1,8 @@
+{
+  "name": "daily-track-lesson-routine",
+  "private": true,
+  "description": "Renderers for the Daily Track Lesson scheduled task",
+  "dependencies": {
+    "three": "0.170.0"
+  }
+}

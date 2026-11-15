@@ -1,0 +1,11 @@
+{
+ "voice": "bm_george", "lang": "en-gb",
+ "lines": [
+  {"scene": "overview", "text": "Here is the same separator in three dimensions, with the front half of the shell cut away."},
+  {"scene": "inlet", "text": "The well stream enters on the left and strikes the inlet diverter."},
+  {"scene": "gas", "text": "Gas travels along the top, through the mist extractor, and out of the gas outlet nozzle."},
+  {"scene": "liquid", "text": "Underneath, water settles to the bottom while condensate floats on top of it."},
+  {"scene": "weir", "text": "The condensate spills over the weir into its own compartment, and each liquid leaves through its own nozzle."},
+  {"scene": "saddles", "text": "Notice the two saddles. One is fixed, and the other is allowed to slide as the vessel expands with temperature."}
+ ]
+}

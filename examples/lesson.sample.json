@@ -1,0 +1,22 @@
+{
+  "type": "lesson",
+  "lesson_id": "L042", "sequence": 42, "total": 290,
+  "title": "Horizontal three-phase separators",
+  "module": "Separators", "phase": "2 Static equipment", "week": 9,
+  "date_label": "Mon 11 Jan 2027",
+  "concept": [
+    "A three-phase separator splits the well stream into gas, hydrocarbon liquid and water using gravity and time.",
+    "Gas leaves through a mist extractor at the top. The liquids settle into layers, and a weir lets the lighter oil or condensate spill into its own compartment."
+  ],
+  "why_it_matters": "On a gas-condensate facility, the separator sets how much liquid carries over to compression and how clean the produced water is before treatment.",
+  "video": {"url": "https://www.youtube.com/watch?v=EXAMPLE", "title": "How a three-phase separator works", "channel": "Example channel", "minutes": 8,
+            "watch_for": ["Where the inlet diverter sits and why", "How the weir sets the oil compartment level"]},
+  "animation": {"url": "https://drive.google.com/file/d/EXAMPLE/view", "minutes": 2, "kind": "3D", "note": "A cut-away of the vessel showing each internal in turn."},
+  "diagram": {"image_url": "https://lh3.googleusercontent.com/d/EXAMPLE", "view_url": "https://drive.google.com/file/d/EXAMPLE/view", "caption": "Schematic, not to scale."},
+  "notes": ["Gravity separation needs residence time.", "Weir height sets the oil compartment level.", "Three control loops: pressure, oil level, interface level."],
+  "numbers": ["Liquid retention: about 3 to 5 minutes for light condensate", "Mist pad: removes droplets down to about 10 microns"],
+  "spot_it": "On a separator P&ID, find the interface level transmitter and follow its signal to the water outlet valve.",
+  "reviews": [{"lesson_id": "L041", "title": "Vessel nozzles", "q": "Why is a vortex breaker fitted on a liquid outlet?", "a": "To stop a vortex drawing gas into the liquid outlet line."}],
+  "mentor_prep": ["Which separators on our facility are three-phase, and where do they sit in the process?"],
+  "feedback_base": "https://n8n.abubells.com/webhook/track-lesson-feedback"
+}

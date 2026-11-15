@@ -1,0 +1,96 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js"}}</script>
+</head><body>
+<script type="module">
+// Example 3D lesson scene. Render from the repo root:
+//   python3 lib/narrate.py examples/separator_3d/script.json work/sep3d
+//   node lib/render3d.js examples/separator_3d/scene.html work/sep3d out/sep3d/animation.mp4 20
+import * as THREE from "three";
+import { createStage, C } from "/lib/stage3d.js";
+const S = createStage({ title: "Three-phase separator in 3D", tag: "Cut-away view · schematic" });
+const { plane, mat, ghost, hCapsule, pipe, flange, label, cam, flow, poly, rnd } = S;
+
+const R = 1.5, HALF = 5, WEIR = 2.8, OILTOP = 0.0, IFACE = -0.75, COMP = -0.6;
+
+// shell: back half solid, front half ghosted
+S.add(new THREE.Mesh(hCapsule(R, 2 * HALF), mat(0xC9CED3, { metalness: 0.35, roughness: 0.55, side: THREE.DoubleSide, clippingPlanes: [plane(0, 0, -1, 0)] })));
+S.add(new THREE.Mesh(hCapsule(R, 2 * HALF), ghost(0xB8C0C8, 0.13, { clippingPlanes: [plane(0, 0, 1, 0)] })));
+// cut-edge rim
+const rim = [];
+for (let i = 0; i <= 200; i++) { const s = i / 200; let x, y;
+  if (s < 0.25) { const a = Math.PI / 2 + s / 0.25 * Math.PI; x = -HALF + R * Math.cos(a); y = R * Math.sin(a); }
+  else if (s < 0.5) { x = -HALF + (s - 0.25) / 0.25 * 2 * HALF; y = -R; }
+  else if (s < 0.75) { const a = -Math.PI / 2 + (s - 0.5) / 0.25 * Math.PI; x = HALF + R * Math.cos(a); y = R * Math.sin(a); }
+  else { x = HALF - (s - 0.75) / 0.25 * 2 * HALF; y = R; }
+  rim.push(new THREE.Vector3(x, y, 0)); }
+S.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rim, true), 300, 0.035, 8, true), mat(C.dark)));
+
+// liquids (clipped capsules) and their surfaces
+const liquid = (color, op, planes) => new THREE.Mesh(hCapsule(R - 0.03, 2 * HALF), ghost(color, op, { roughness: 0.25, clippingPlanes: planes }));
+S.add(liquid(C.water, 0.5, [plane(0, -1, 0, IFACE), plane(-1, 0, 0, WEIR)]));
+S.add(liquid(C.oil, 0.4, [plane(0, 1, 0, -IFACE), plane(0, -1, 0, OILTOP), plane(-1, 0, 0, WEIR)]));
+S.add(liquid(C.oil, 0.4, [plane(0, -1, 0, COMP), plane(1, 0, 0, -(WEIR + 0.06))]));
+function surface(y, x0, x1, color, op) {
+  const w = Math.sqrt(R * R - y * y) - 0.04, pts = [];
+  for (let i = 0; i <= 120; i++) { const x = x0 + (x1 - x0) * i / 120; let h = w;
+    if (x < -HALF) h = Math.sqrt(Math.max(0, w * w - (x + HALF) ** 2));
+    if (x > HALF) h = Math.sqrt(Math.max(0, w * w - (x - HALF) ** 2)); pts.push([x, h]); }
+  const sh = new THREE.Shape(); sh.moveTo(pts[0][0], -pts[0][1]);
+  pts.forEach(p => sh.lineTo(p[0], -p[1])); [...pts].reverse().forEach(p => sh.lineTo(p[0], p[1]));
+  const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), ghost(color, op)); m.rotation.x = Math.PI / 2; m.position.y = y; return m; }
+S.add(surface(OILTOP, -HALF - Math.sqrt(R * R) + 0.05, WEIR, C.oil, 0.6));
+S.add(surface(IFACE, -HALF - Math.sqrt(R * R - IFACE * IFACE) + 0.05, WEIR, C.water, 0.55));
+S.add(surface(COMP, WEIR + 0.06, HALF + Math.sqrt(R * R - COMP * COMP) - 0.05, C.oil, 0.6));
+
+// internals
+const weir = new THREE.Mesh(new THREE.CylinderGeometry(R - 0.03, R - 0.03, 0.06, 64), mat(C.dark, { clippingPlanes: [plane(0, -1, 0, 0.06)] }));
+weir.rotation.z = Math.PI / 2; weir.position.x = WEIR; S.add(weir);
+const div = S.box([0.08, 1.1, 1.4], [-5.5, 0.75, 0], C.dark); div.rotation.z = -0.25;
+const padGeo = new THREE.BoxGeometry(1.1, 0.6, 1.6);
+const pad = S.add(new THREE.Mesh(padGeo, ghost(0xDDE2E6, 0.55))); pad.position.set(4.4, 0.8, 0);
+const edges = S.add(new THREE.LineSegments(new THREE.EdgesGeometry(padGeo), new THREE.LineBasicMaterial({ color: 0x333B42 }))); edges.position.copy(pad.position);
+
+// nozzles, pipes, PSV
+pipe([-9, 0.8, 0], [-6.2, 0.8, 0]); flange([-7, 0.8, 0], "x");
+pipe([4.4, 1.3, 0], [4.4, 3.4, 0]); pipe([4.4, 3.4, 0], [9, 3.4, 0]); flange([4.4, 2.3, 0]);
+pipe([1.5, -1.45, 0], [1.5, -3.6, 0]); flange([1.5, -2.2, 0]);
+pipe([4.6, -1.45, 0], [4.6, -3.6, 0]); flange([4.6, -2.2, 0]);
+pipe([0, 1.45, 0], [0, 2.6, 0], 0.12);
+const psv = S.add(new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.45, 24), mat(C.hot))); psv.position.set(0, 2.85, 0);
+
+// saddles
+for (const x of [-3.2, 3.2]) { S.box([0.5, 1.7, 2.2], [x, -2.35, 0], 0x56606A); S.box([1.0, 0.12, 2.8], [x, -3.2, 0], 0x56606A); }
+
+// flows (liquid droplets drawn on top so they stay coloured inside the translucent liquid)
+flow(40, C.gas, 0.07, 0.07, () => { const y = 0.3 + 0.9 * rnd(), z = (rnd() - 0.5) * 1.6; return poly([[-9, 0.8, 0], [-5.7, 0.8, 0], [-4.8, y, z], [3.7, y, z], [4.4, 0.8, z * 0.3], [4.4, 3.4, 0], [8.8, 3.4, 0]]); });
+flow(14, C.water, 0.05, 0.6, () => { const z = (rnd() - 0.5) * 1.2; return poly([[-5.45, 0.5, z], [-5.2, -0.1, z]]); });
+flow(30, C.water, 0.055, 0.18, () => { const x = -4.5 + 6.8 * rnd(), z = rnd() * 1.0; return poly([[x, -0.05, z], [x + 0.3, -1.3, z]]); }, { onTop: true });
+flow(30, C.oil, 0.055, 0.18, () => { const x = -4.5 + 6.8 * rnd(), z = rnd() * 0.9; return poly([[x, -1.3, z], [x + 0.3, -0.08, z]]); }, { onTop: true });
+flow(14, C.oil, 0.06, 0.25, () => { const z = (rnd() - 0.5) * 2.4; return poly([[1.2, -0.06, z], [WEIR, 0.09, z], [WEIR + 0.35, -0.1, z * 0.9], [WEIR + 0.5, COMP, z * 0.8]]); });
+flow(8, C.water, 0.07, 0.4, () => poly([[1.5, -1.45, 0], [1.5, -3.5, 0]]));
+flow(8, C.oil, 0.07, 0.4, () => poly([[4.6, -1.45, 0], [4.6, -3.5, 0]]));
+
+// labels (highlighted while their scene is narrated)
+label("Inlet diverter", [-5.5, 1.5, 0], ["inlet"]);
+label("Mist extractor", [4.4, 1.25, 0.9], ["gas"]);
+label("Gas out", [7.5, 3.7, 0], ["gas"]);
+label("Condensate", [-1.5, -0.3, 1.2], ["liquid"]);
+label("Water", [-1.5, -1.05, 1.15], ["liquid"]);
+label("Weir", [WEIR, 0.25, 1.0], ["weir"]);
+label("Condensate out", [4.6, -3.0, 0], ["weir"]);
+label("Water out", [1.5, -3.0, 0], ["weir"]);
+label("PSV", [0, 3.2, 0], ["overview"]);
+label("Fixed saddle", [-3.2, -1.9, 1.3], ["saddles"]);
+label("Sliding saddle", [3.2, -1.9, 1.3], ["saddles"]);
+
+// camera per scene: [position], [look-at target]
+cam("overview", [-6, 4.5, 14], [0, -0.3, 0]);
+cam("inlet", [-9.5, 2.6, 6.5], [-5.3, 0.6, 0]);
+cam("gas", [1.5, 4.2, 7.5], [3.6, 1.2, 0]);
+cam("liquid", [-1.5, -0.4, 7.2], [-1.2, -0.6, 0]);
+cam("weir", [6.5, 0.6, 6.5], [3.3, -0.7, 0]);
+cam("saddles", [-2, -1.6, 12.5], [0, -1.7, 0]);
+
+S.start();
+</script></body></html>

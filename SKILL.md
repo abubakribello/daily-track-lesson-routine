@@ -51,11 +51,11 @@ If `Recipient` is missing, log a Failed run with the reason and stop. The webhoo
 Probe the n8n host: `curl -s -o /dev/null -w '%{http_code}' --max-time 15 -X POST "<Send webhook URL>" -H 'Content-Type: application/json' -d '{}'`.
 
 - Any HTTP code other than `000`: **n8n route**. Upload with `lib/upload.py`, send with `lib/send.py` (as written in Steps 8 to 10).
-- `000` (the cloud network blocks the host, which is the normal case for this task): **connector route**. Do not call the webhooks again. Instead:
-  - **Diagram**: attach it inline to the email (in `lesson.json` set `diagram.image_url` to `cid:att0`). Also store it: upload `diagram.png` with the Google Drive connector `create_file` (title `<id> diagram.png`, `contentMimeType` `image/png`, `disableConversionToGoogleType` true, `parentId` = the `Track Lesson Media` folder, `base64Content` as a file reference) and share it `anyoneWithLink` / `reader`. Put `https://drive.google.com/file/d/<id>/view` in `diagram.view_url` (the email links to it) and in the lesson's `Diagram URL`. If the Drive upload fails, send anyway with the inline image and note it in the run.
-  - **Animation** (if any): upload with the Google Drive connector `create_file` (`base64Content` as a file reference `sha256:<hex>:<absolute path>`, `contentMimeType` `video/mp4`, `disableConversionToGoogleType` true, `parentId` = the folder named `Track Lesson Media`; find it with a Drive search, create it if missing). Then `share_file` with `permissionId` `anyoneWithLink`, role `reader`, and use `https://drive.google.com/file/d/<id>/view` as the link.
-  - **Send**: Gmail connector `send_message` with `to` = Recipient, `subject`, `htmlBody` = the contents of `email.html`, and `attachments` = `[{"content": "sha256:<hex>:<absolute path to diagram.png>", "filename": "diagram.png", "mimeType": "image/png", "inline": true}]` (no attachments if there is no diagram). Compute the hex with `sha256sum`.
-  - Keep the narration and scene files too: on runs that generate an animation, also upload `script.json` (text) to the same folder, so a video can be re-rendered later.
+- `000` (the cloud network blocks the host): **connector route**. Do not call the webhooks again. This route must never wait for a human approval, so **do not pass any file references** (`sha256:...`) to any connector: a scheduled run has nobody to approve them and will hang. Instead:
+  - **Diagram**: still render and check it (it keeps the lesson honest), but leave `diagram` out of `lesson.json`. Add one line to `spot_it` or the concept describing what the diagram would show, and note "diagram not delivered (connector route)" in the run Notes.
+  - **Animation**: skip it on this route (note it in the run).
+  - **Send**: Gmail connector `send_message` with `to` = Recipient, `subject`, and `htmlBody` = the full contents of `email.html` (read the file and pass the text). No attachments.
+  - Leave `Diagram URL` and `Generated Media URL` blank.
 
 ## Step 2: Decide the run type
 

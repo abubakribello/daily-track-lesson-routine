@@ -15,7 +15,7 @@ Lesson JSON (type "lesson"):
             "watch_for": ["...", "..."]} | null,
   "animation": {"url": "https://drive.google.com/file/d/.../view", "minutes": 3, "kind": "2D" | "3D",
                 "note": "why it was generated / what it shows"} | null,
-  "diagram": {"image_url": "https://lh3.googleusercontent.com/d/<id>", "view_url": "...", "caption": "..."} | null,
+  "diagram": {"image_url": "https://lh3.googleusercontent.com/d/<id>" or "cid:att0", "view_url": "..." (optional), "caption": "..."} | null,
   "notes": ["key idea", ...],                      # 3-5
   "numbers": ["typical value with units", ...],    # optional
   "spot_it": "one thing to find on a P&ID / datasheet, or a question to ask the mentor",
@@ -106,12 +106,14 @@ def lesson_body(L):
     d = L.get("diagram")
     if d:
         out.append(h("Diagram"))
-        img = (f'<a href="{e(d.get("view_url") or d["image_url"])}"><img src="{e(d["image_url"])}" width="568" alt="{e(d.get("caption") or L["title"])}" '
-               f'style="display:block;width:100%;max-width:568px;height:auto;border:1px solid {LINE}"></a>')
-        out.append(img)
+        view = d.get("view_url") or ("" if d["image_url"].startswith("cid:") else d["image_url"])
+        img = (f'<img src="{e(d["image_url"])}" width="568" alt="{e(d.get("caption") or L["title"])}" '
+               f'style="display:block;width:100%;max-width:568px;height:auto;border:1px solid {LINE}">')
+        out.append(f'<a href="{e(view)}">{img}</a>' if view else img)
         if d.get("caption"):
             out.append(p(e(d["caption"]), 13, MUTED, "6px 0 12px"))
-        out.append(p(f'Image not showing? <a href="{e(d.get("view_url") or d["image_url"])}" style="color:{TEAL}">Open the diagram</a>.', 12, MUTED))
+        if view:
+            out.append(p(f'Image not showing? <a href="{e(view)}" style="color:{TEAL}">Open the diagram</a>.', 12, MUTED))
     out.append(h("Key ideas")); out.append(ul(L.get("notes", [])))
     if L.get("numbers"):
         out.append(h("Typical numbers")); out.append(ul(L["numbers"]))

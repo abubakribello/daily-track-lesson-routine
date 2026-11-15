@@ -25,7 +25,7 @@ Time zone: Africa/Lagos for every date. "Today" means today in Lagos.
 
 ## Step 0: Set up
 
-1. `cd` into this repo and run `bash setup.sh`. Then check the n8n host is reachable: `curl -s -o /dev/null -w '%{http_code}' -X POST <Send webhook URL>` after Step 1 (any HTTP code is fine; `000` means the network blocks it). If it is blocked, stop after writing a Failed Runs row that says the task is in the wrong cloud environment, so no time is spent on content that cannot be sent. It installs the tools, downloads the voice model and writes `work/capabilities.json` with `diagram`, `tts`, `anim2d`, `anim3d` (true/false). Read it.
+1. `cd` into this repo and run `bash setup.sh`. It installs the tools, downloads the voice model and writes `work/capabilities.json` with `diagram`, `tts`, `anim2d`, `anim3d` (true/false). Read it.
 2. Note the start time. Use `work/<lesson_id>/` for all scratch files.
 
 ## Step 1: Read Settings
@@ -44,7 +44,18 @@ List every row in Settings and build a dict `Setting -> Value`. Keys used:
 | Upload webhook URL | n8n webhook that uploads media to Google Drive |
 | Feedback base URL | base URL for the rating buttons |
 
-If `Recipient`, `Send webhook URL` or `Upload webhook URL` is missing, log a Failed run with the reason and stop.
+If `Recipient` is missing, log a Failed run with the reason and stop. The webhook URLs are only needed on the n8n route.
+
+## Step 1b: Choose the delivery route
+
+Probe the n8n host: `curl -s -o /dev/null -w '%{http_code}' --max-time 15 -X POST "<Send webhook URL>" -H 'Content-Type: application/json' -d '{}'`.
+
+- Any HTTP code other than `000`: **n8n route**. Upload with `lib/upload.py`, send with `lib/send.py` (as written in Steps 8 to 10).
+- `000` (the cloud network blocks the host, which is the normal case for this task): **connector route**. Do not call the webhooks again. Instead:
+  - **Diagram**: do not upload it. Attach it inline to the email: in `lesson.json` set `diagram.image_url` to `cid:att0` and leave `view_url` out.
+  - **Animation** (if any): upload with the Google Drive connector `create_file` (`base64Content` as a file reference `sha256:<hex>:<absolute path>`, `contentMimeType` `video/mp4`, `disableConversionToGoogleType` true, `parentId` = the folder named `Track Lesson Media`; find it with a Drive search, create it if missing). Then `share_file` with `permissionId` `anyoneWithLink`, role `reader`, and use `https://drive.google.com/file/d/<id>/view` as the link.
+  - **Send**: Gmail connector `send_message` with `to` = Recipient, `subject`, `htmlBody` = the contents of `email.html`, and `attachments` = `[{"content": "sha256:<hex>:<absolute path to diagram.png>", "filename": "diagram.png", "mimeType": "image/png", "inline": true}]` (no attachments if there is no diagram). Compute the hex with `sha256sum`.
+  - Record `Diagram URL` as blank on this route (the diagram lives in the email).
 
 ## Step 2: Decide the run type
 
@@ -110,7 +121,7 @@ Style: the lesson's `Visual Style` (2D or 3D). If that style's capability is fal
 
 1. Write `work/<id>/diagram.py` using `lib/style.py` (`new_diagram`, `vessel_h`, `vessel_v`, `pipe`, `valve`, `instrument`, `signal`, `label`, `callout`, `fill_clipped`). See `examples/separator_2d/make.py`. Keep to one clear idea. It is a schematic, so say "Schematic, not to scale" where relevant.
 2. Render to `work/<id>/diagram.png` and **open the PNG and look at it**. Check: nothing clipped at the edges, no overlapping labels, labels on or next to what they name, the physics and flow directions correct, readable on a phone. Fix and re-render up to three times.
-3. Upload: `python3 lib/upload.py "<Upload webhook URL>" work/<id>/diagram.png <id> "<id> diagram.png"`. Use `imageUrl` as the `<img>` source and `viewUrl` as the fallback link.
+3. n8n route only: `python3 lib/upload.py "<Upload webhook URL>" work/<id>/diagram.png <id> "<id> diagram.png"`. Use `imageUrl` as the `<img>` source and `viewUrl` as the fallback link. On the connector route, skip the upload (Step 1b).
 
 If the diagram fails after three attempts, send without it and record that in the run Notes.
 
@@ -125,7 +136,7 @@ Target length: `Generated video target minutes`. Longer is fine when the idea ne
    - **3D**: write `work/<id>/scene.html` using `lib/stage3d.js` (camera per scene with `S.cam`, labels with `S.label`, flows with `S.flow`, cut-aways with clipping planes). Model it on `examples/separator_3d/scene.html`. Render with `node lib/render3d.js work/<id>/scene.html work/<id> work/<id>/animation.mp4 20`.
    - Test first with a short render (2D: `max_seconds=10`; 3D: last argument `8`) and look at the check frames before the full render.
 4. Look at the check frames from the full render (`check2d_*.png` or `check3d_*.jpg`). Fix obvious problems: labels off screen or overlapping, camera inside geometry, captions out of sync.
-5. Upload: `python3 lib/upload.py "<Upload webhook URL>" work/<id>/animation.mp4 <id> "<id> <title>.mp4"`. Use `viewUrl`.
+5. Upload: n8n route `python3 lib/upload.py "<Upload webhook URL>" work/<id>/animation.mp4 <id> "<id> <title>.mp4"` (use `viewUrl`); connector route as in Step 1b.
 
 If the animation fails, skip it and send the lesson anyway (run Status `Sent without media`).
 
@@ -134,7 +145,7 @@ If the animation fails, skip it and send the lesson anyway (run Status `Sent wit
 1. Write `work/<id>/lesson.json` in the format documented at the top of `lib/build_email.py` (type `lesson`). Set `feedback_base` to `Feedback base URL`, `date_label` like `Mon 16 Nov 2026`, `total` to the number of Lessons rows (290 unless changed).
 2. `python3 lib/build_email.py work/<id>/lesson.json work/<id>/email.html`
 3. Subject: `Lesson <Sequence>: <Title>` (prefix `[TEST] ` on test runs). Saturday: `Week <n> review`.
-4. `python3 lib/send.py "<Send webhook URL>" "<Recipient>" "<subject>" work/<id>/email.html`
+4. n8n route: `python3 lib/send.py "<Send webhook URL>" "<Recipient>" "<subject>" work/<id>/email.html`. Connector route: Gmail `send_message` as in Step 1b.
 5. If sending fails, retry once after 30 seconds. If it still fails, write a Failed Runs row with the error and stop without changing Lessons.
 
 ## Step 11: Update Airtable (after a successful send, not on test runs)

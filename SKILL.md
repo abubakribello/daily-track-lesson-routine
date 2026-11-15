@@ -25,7 +25,7 @@ Time zone: Africa/Lagos for every date. "Today" means today in Lagos.
 
 ## Step 0: Set up
 
-1. `cd` into this repo and run `bash setup.sh`. It installs the tools, downloads the voice model and writes `work/capabilities.json` with `diagram`, `tts`, `anim2d`, `anim3d` (true/false). Read it.
+1. `cd` into this repo and run `bash setup.sh`. Then check the n8n host is reachable: `curl -s -o /dev/null -w '%{http_code}' -X POST <Send webhook URL>` after Step 1 (any HTTP code is fine; `000` means the network blocks it). If it is blocked, stop after writing a Failed Runs row that says the task is in the wrong cloud environment, so no time is spent on content that cannot be sent. It installs the tools, downloads the voice model and writes `work/capabilities.json` with `diagram`, `tts`, `anim2d`, `anim3d` (true/false). Read it.
 2. Note the start time. Use `work/<lesson_id>/` for all scratch files.
 
 ## Step 1: Read Settings
@@ -86,7 +86,7 @@ Name codes and standards (ASME B31.3, ASME VIII, API 520/521, API 610, API 617, 
 
 1. Search the web for a video that teaches today's idea well. Prefer animation-led engineering teaching channels and equipment manufacturers. Search terms: the lesson title plus "animation", "how it works", "explained".
 2. Verify every candidate before using it:
-   - Fetch `https://www.youtube.com/oembed?url=<watch URL>&format=json`. It must return a title and author. If it fails, the video does not exist or is private: discard it.
+   - Fetch `https://www.youtube.com/oembed?url=<watch URL>&format=json` with the WebFetch tool (the shell cannot reach youtube.com). It must return a title and author. If it fails, the video does not exist or is private: discard it.
    - Find its length (from the search result or the watch page). It must be at most `YouTube max minutes`.
    - It must be on topic for today's lesson, judged from its title and description.
    - It must not appear in Video Blocklist (`Video URL`) and must not already be used by another lesson (`YouTube URL` in Lessons).

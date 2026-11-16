@@ -35,6 +35,7 @@ List every row in Settings and build a dict `Setting -> Value`. Keys used:
 | Setting | Meaning |
 |---|---|
 | Paused | `yes` = do nothing except log a Skipped (paused) run |
+| Test next run | `yes` = treat this run as a test, then set it back to `no` |
 | Saturday review | `on` / `off` |
 | YouTube max minutes | longest video to send (default 15) |
 | Generated video target minutes | e.g. `2-4` |
@@ -59,7 +60,7 @@ Probe the n8n host: `curl -s -o /dev/null -w '%{http_code}' --max-time 15 -X POS
 
 ## Step 2: Decide the run type
 
-- If the trigger text contains `TEST`: this is a **Test** run. Do the full lesson flow for the next lesson, prefix the subject with `[TEST] `, and do **not** change any Lessons rows. Only write the Runs row (Run Type = Test).
+- If the trigger text contains `TEST`, **or** Settings `Test next run = yes`: this is a **Test** run. In the second case, set `Test next run` back to `no` in Settings as soon as you read it (so only one run is a test). Do the full lesson flow for the next lesson, prefix the subject with `[TEST] `, and do **not** change any Lessons rows. Only write the Runs row (Run Type = Test).
 - Otherwise, by today's weekday: Monday to Friday is a **Lesson** run. Saturday is a **Saturday review** run if `Saturday review = on`, otherwise stop. Sunday: stop.
 - If `Paused = yes` (and not a test): write a Runs row with Status `Skipped (paused)` and stop.
 - If a Runs row already exists for today with Status Sent and Run Type Lesson or Saturday review (and this is not a test), stop. This prevents double sends.

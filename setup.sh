@@ -9,8 +9,11 @@ NOTES=()
 log() { echo "[setup] $*"; }
 
 # ---- Python packages ----
-PIP="pip install -q --disable-pip-version-check"
+# install into the interpreter that runs the scripts (plain `pip` can point at another Python)
+PIP="python3 -m pip install -q --disable-pip-version-check"
+python3 -m pip --version >/dev/null 2>&1 || python3 -m ensurepip --upgrade >/dev/null 2>&1 || NOTES+=("python3 has no pip")
 python3 -c "import matplotlib, numpy" 2>/dev/null || $PIP matplotlib numpy 2>/dev/null || $PIP --break-system-packages matplotlib numpy
+python3 -c "from PIL import Image" 2>/dev/null || $PIP --upgrade --force-reinstall pillow 2>/dev/null || $PIP --break-system-packages --upgrade --force-reinstall pillow || NOTES+=("pillow repair failed")
 python3 -c "import kokoro_onnx, soundfile" 2>/dev/null || $PIP kokoro-onnx soundfile 2>/dev/null || $PIP --break-system-packages kokoro-onnx soundfile || NOTES+=("pip install kokoro-onnx failed")
 
 # ---- Kokoro voice files (GitHub release; Hugging Face is blocked) ----

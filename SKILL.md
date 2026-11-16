@@ -97,11 +97,12 @@ Name codes and standards (ASME B31.3, ASME VIII, API 520/521, API 610, API 617, 
 ## Step 6: Find and verify one YouTube video
 
 1. Search the web for a video that teaches today's idea well. Prefer animation-led engineering teaching channels and equipment manufacturers. Search terms: the lesson title plus "animation", "how it works", "explained".
-2. Verify every candidate before using it:
-   - Fetch `https://www.youtube.com/oembed?url=<watch URL>&format=json` with the WebFetch tool (the shell cannot reach youtube.com). It must return a title and author. If it fails, the video does not exist or is private: discard it.
-   - Find its length (from the search result or the watch page). It must be at most `YouTube max minutes`.
-   - It must be on topic for today's lesson, judged from its title and description.
-   - It must not appear in Video Blocklist (`Video URL`) and must not already be used by another lesson (`YouTube URL` in Lessons).
+2. Verify every candidate before using it (the shell cannot reach youtube.com; use WebSearch/WebFetch):
+   - **Exists**: WebFetch `https://www.youtube.com/oembed?url=<watch URL>&format=json` returns a title and author. If it fails, discard the video. This check is mandatory.
+   - **On topic**: judge from the oEmbed title plus the search result's title/description. It must teach today's idea, not just mention the words.
+   - **Length**: take it from the search result, the watch page (WebFetch), or another listing of the same video. If it is over `YouTube max minutes`, discard. If you cannot find the length after two tries, still use the video when it exists and is clearly on topic, and write "length not confirmed" instead of the minutes. Do not drop a good video only because its length is unknown.
+   - **Not reused**: not in Video Blocklist (`Video URL`) and not already in another lesson's `YouTube URL`.
+   - Try up to 6 candidates across 3 or more searches (vary the wording: the topic in plain words, the equipment name + "how it works", "explained", "animation", and a well-known teaching channel name) before giving up.
 3. Use the plain watch URL `https://www.youtube.com/watch?v=<id>` so it opens the YouTube app on a phone.
 4. Write 2 to 3 short "watch for" points.
 5. If nothing passes, use no video. Never send an unverified link.
@@ -110,7 +111,7 @@ Decide whether the chosen video covers the lesson's key idea. If it clearly miss
 
 ## Step 7: Decide on a generated animation
 
-Generate an animation only if `Generate animations = on`, `capabilities.json` allows the style, and at least one of these is true:
+**Hard gate: if Settings `Generate animations` is not exactly `on`, do not generate any animation, for any reason, including when no video was found.** The lesson then runs on diagram + text (+ video if found). Otherwise generate an animation only if `capabilities.json` allows the style and at least one of these is true:
 
 - no video passed Step 6 (reason `No suitable video`);
 - the video misses the key idea (reason `Video misses key idea`);
